@@ -1,0 +1,318 @@
+:root {
+  --bg: #0d1017;
+  --surface: rgba(18, 22, 31, 0.92);
+  --surface-solid: #12161f;
+  --border: rgba(255, 255, 255, 0.12);
+  --text: #eef1f6;
+  --muted: #98a2b3;
+  --accent: #ffd451;
+  --radius: 12px;
+  --shadow: 0 10px 34px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app { position: relative; height: 100%; overflow: hidden; }
+
+.map { position: absolute; inset: 0; z-index: 1; }
+
+/* The agent layer draws above the map but never intercepts input: clicks and
+   hovers are handled through MapLibre's own events, so pan and zoom gestures
+   pass straight through. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------- search */
+
+.top-bar {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 28px));
+  z-index: 5;
+}
+
+.search { position: relative; }
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  height: 44px;
+  background: var(--surface);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--muted);
+}
+
+.search-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+
+.search-field input::placeholder { color: var(--muted); }
+
+.clear {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.clear:hover { color: var(--text); }
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.search-results {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 6px;
+  background: var(--surface);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.search-results button {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 10px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+.search-results button.active { background: rgba(255, 255, 255, 0.09); }
+
+.result-name { font-size: 14px; font-weight: 600; }
+.result-kind {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: capitalize;
+  align-self: center;
+  white-space: nowrap;
+}
+.result-detail {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-error {
+  margin-top: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #ffb4a8;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* ------------------------------------------------------------------- hud */
+
+.hud {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 4;
+  padding: 10px 13px;
+  background: var(--surface);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  min-width: 190px;
+}
+
+.hud-row { display: flex; gap: 16px; }
+
+.metric { display: flex; align-items: baseline; gap: 6px; }
+.metric strong { font-size: 19px; font-variant-numeric: tabular-nums; }
+.metric-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.metric-dot { width: 8px; height: 8px; border-radius: 50%; align-self: center; }
+
+.hud-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-hint { margin-top: 7px; font-size: 11.5px; color: var(--accent); max-width: 200px; }
+
+/* ----------------------------------------------------------------- panel */
+
+.panel {
+  position: absolute;
+  top: 70px;
+  right: 14px;
+  bottom: 46px;
+  width: 320px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.panel.collapsed { bottom: auto; width: 260px; }
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.panel.collapsed .panel-head { border-bottom: 0; }
+
+.panel-head h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.panel-badge { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+.panel-toggle, .panel-close {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 6px;
+}
+.panel-close { font-size: 19px; }
+.panel-toggle:hover, .panel-close:hover { color: var(--text); background: rgba(255, 255, 255, 0.08); }
+
+.panel-body { padding: 12px; overflow-y: auto; }
+
+.panel-kind { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.panel-kind code { font-size: 11px; color: var(--accent); }
+
+.panel dl { margin: 0 0 14px; display: grid; gap: 1px; }
+.panel .row {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.panel dt { font-size: 12px; color: var(--muted); }
+.panel dd { margin: 0; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+.panel h3 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.trip-bar { height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.trip-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.3s linear; }
+
+.trip-ends {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 6px 0 14px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.panel-hint { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin: 4px 0 0; }
+
+/* ------------------------------------------------------------------- tip */
+
+.tip {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* MapLibre chrome tuned to match the dark UI. */
+.maplibregl-ctrl-attrib.maplibregl-compact { background: var(--surface); color: var(--text); }
+.maplibregl-ctrl-attrib a { color: var(--muted); }
+
+@media (max-width: 720px) {
+  .panel { top: auto; right: 8px; left: 8px; bottom: 8px; width: auto; max-height: 52%; }
+  .panel.collapsed { width: auto; }
+  .hud { top: auto; bottom: 8px; left: 8px; min-width: 0; }
+  .tip { display: none; }
+}
